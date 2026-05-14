@@ -1,0 +1,22 @@
+{
+  "name": "clubhub",
+  "version": "1.0.0",
+  "description": "Student Club and Event Management System for a System Analysis and Design CRUD project.",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test tests/*.test.js",
+    "lint": "eslint src public tests eslint.config.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1"
+  },
+  "devDependencies": {
+    "eslint": "^9.39.1"
+  }
+}
