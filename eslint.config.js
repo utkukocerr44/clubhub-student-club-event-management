@@ -30,6 +30,7 @@ export default [
         window: 'readonly',
         fetch: 'readonly',
         FormData: 'readonly',
+        localStorage: 'readonly',
         setTimeout: 'readonly'
       }
     },

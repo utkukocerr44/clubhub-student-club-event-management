@@ -1,9 +1,11 @@
 import express from 'express';
+import { requireAuth, requireRole } from '../authMiddleware.js';
 import { asyncHandler } from '../middleware.js';
 import { assertEmail, assertId, requireFields } from '../validators/inputValidators.js';
-import { createClub, deleteClub, getClubById, listClubs, updateClub } from '../repositories/clubRepository.js';
+import { createClub, deleteClub, getClubById, listClubs, listClubsForStudent, updateClub } from '../repositories/clubRepository.js';
 
 export const clubsRouter = express.Router();
+clubsRouter.use(requireAuth);
 
 /**
  * @swagger
@@ -15,11 +17,22 @@ export const clubsRouter = express.Router();
  *         description: Club list
  */
 clubsRouter.get('/', asyncHandler((req, res) => {
-  res.json(listClubs());
+  if (req.user.role === 'student') return res.json(listClubsForStudent(req.user.student_id));
+  if (req.user.role === 'club_manager') return res.json([getClubById(req.user.managed_club_id)]);
+  return res.json(listClubs());
 }));
 
 clubsRouter.get('/:id', asyncHandler((req, res) => {
-  const club = getClubById(assertId(req.params.id));
+  const id = assertId(req.params.id);
+  if (req.user.role === 'student') {
+    const club = listClubsForStudent(req.user.student_id).find((item) => item.id === id);
+    if (!club) return res.status(404).json({ error: 'Club was not found.' });
+    return res.json(club);
+  }
+  if (req.user.role === 'club_manager' && id !== req.user.managed_club_id) {
+    return res.status(404).json({ error: 'Club was not found.' });
+  }
+  const club = getClubById(id);
   if (!club) return res.status(404).json({ error: 'Club was not found.' });
   return res.json(club);
 }));
@@ -33,14 +46,14 @@ clubsRouter.get('/:id', asyncHandler((req, res) => {
  *       201:
  *         description: Created club
  */
-clubsRouter.post('/', asyncHandler((req, res) => {
+clubsRouter.post('/', requireRole('admin'), asyncHandler((req, res) => {
   requireFields(req.body, ['name', 'category', 'description', 'president_name', 'contact_email']);
   assertEmail(req.body.contact_email);
   const club = createClub(req.body);
   res.status(201).json(club);
 }));
 
-clubsRouter.put('/:id', asyncHandler((req, res) => {
+clubsRouter.put('/:id', requireRole('admin'), asyncHandler((req, res) => {
   const id = assertId(req.params.id);
   requireFields(req.body, ['name', 'category', 'description', 'president_name', 'contact_email']);
   assertEmail(req.body.contact_email);
@@ -49,7 +62,7 @@ clubsRouter.put('/:id', asyncHandler((req, res) => {
   return res.json(club);
 }));
 
-clubsRouter.delete('/:id', asyncHandler((req, res) => {
+clubsRouter.delete('/:id', requireRole('admin'), asyncHandler((req, res) => {
   const changes = deleteClub(assertId(req.params.id));
   if (!changes) return res.status(404).json({ error: 'Club was not found.' });
   return res.status(204).send();

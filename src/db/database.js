@@ -31,6 +31,19 @@ export function initializeDatabase() {
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
 
+    CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      student_id INTEGER UNIQUE,
+      full_name TEXT NOT NULL,
+      email TEXT NOT NULL UNIQUE,
+      password_hash TEXT NOT NULL,
+      role TEXT NOT NULL DEFAULT 'student',
+      managed_club_id INTEGER,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE SET NULL,
+      FOREIGN KEY (managed_club_id) REFERENCES clubs(id) ON DELETE SET NULL
+    );
+
     CREATE TABLE IF NOT EXISTS events (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       club_id INTEGER NOT NULL,
@@ -94,6 +107,10 @@ function seedData() {
   const insertRegistration = db.prepare(`
     INSERT OR IGNORE INTO event_registrations (event_id, student_id, status)
     VALUES (@event_id, @student_id, @status)
+  `);
+  const insertUser = db.prepare(`
+    INSERT OR IGNORE INTO users (student_id, full_name, email, password_hash, role, managed_club_id)
+    VALUES (@student_id, @full_name, @email, @password_hash, @role, @managed_club_id)
   `);
   const getClubId = db.prepare('SELECT id FROM clubs WHERE name = ?');
   const getStudentId = db.prepare('SELECT id FROM students WHERE student_number = ?');
@@ -265,4 +282,33 @@ function seedData() {
     { event_id: filmScreeningId, student_id: nilayId, status: 'registered' },
     { event_id: filmScreeningId, student_id: boraId, status: 'registered' }
   ].forEach((registration) => insertRegistration.run(registration));
+
+  const seedPasswordHash = '$2b$10$ZrVgtE681QBr2sS/PP1va..VRccHAClkj7BU2MYqvQ0eUWkrdM/za';
+
+  [
+    {
+      student_id: null,
+      full_name: 'System Admin',
+      email: 'admin@istanbularel.edu.tr',
+      password_hash: seedPasswordHash,
+      role: 'admin',
+      managed_club_id: null
+    },
+    {
+      student_id: keremId,
+      full_name: 'Kerem Ozkan',
+      email: 'kerem.ozkan@istanbularel.edu.tr',
+      password_hash: seedPasswordHash,
+      role: 'club_manager',
+      managed_club_id: softwareClubId
+    },
+    {
+      student_id: melisId,
+      full_name: 'Melis Karaca',
+      email: 'melis.karaca@istanbularel.edu.tr',
+      password_hash: seedPasswordHash,
+      role: 'student',
+      managed_club_id: null
+    }
+  ].forEach((user) => insertUser.run(user));
 }

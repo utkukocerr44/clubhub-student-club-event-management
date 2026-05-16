@@ -10,6 +10,28 @@ export function listMemberships() {
   `).all();
 }
 
+export function listMembershipsForStudent(studentId) {
+  return db.prepare(`
+    SELECT memberships.*, clubs.name AS club_name, students.full_name AS student_name
+    FROM memberships
+    JOIN clubs ON clubs.id = memberships.club_id
+    JOIN students ON students.id = memberships.student_id
+    WHERE memberships.student_id = ?
+    ORDER BY memberships.joined_at DESC
+  `).all(studentId);
+}
+
+export function listMembershipsForClub(clubId) {
+  return db.prepare(`
+    SELECT memberships.*, clubs.name AS club_name, students.full_name AS student_name
+    FROM memberships
+    JOIN clubs ON clubs.id = memberships.club_id
+    JOIN students ON students.id = memberships.student_id
+    WHERE memberships.club_id = ?
+    ORDER BY memberships.joined_at DESC
+  `).all(clubId);
+}
+
 export function createMembership(membership) {
   const result = db.prepare(`
     INSERT INTO memberships (club_id, student_id, role, status)
@@ -22,6 +44,10 @@ export function createMembership(membership) {
   });
 
   return db.prepare('SELECT * FROM memberships WHERE id = ?').get(result.lastInsertRowid);
+}
+
+export function getMembershipById(id) {
+  return db.prepare('SELECT * FROM memberships WHERE id = ?').get(id);
 }
 
 export function updateMembershipStatus(id, status) {

@@ -4,6 +4,17 @@ export function listClubs() {
   return db.prepare('SELECT * FROM clubs ORDER BY name').all();
 }
 
+export function listClubsForStudent(studentId) {
+  return db.prepare(`
+    SELECT clubs.*
+    FROM clubs
+    JOIN memberships ON memberships.club_id = clubs.id
+    WHERE memberships.student_id = ?
+      AND memberships.status = 'approved'
+    ORDER BY clubs.name
+  `).all(studentId);
+}
+
 export function getClubById(id) {
   return db.prepare('SELECT * FROM clubs WHERE id = ?').get(id);
 }

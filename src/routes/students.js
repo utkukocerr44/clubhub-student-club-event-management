@@ -1,4 +1,5 @@
 import express from 'express';
+import { requireAuth, requireRole } from '../authMiddleware.js';
 import { asyncHandler } from '../middleware.js';
 import { assertEmail, assertId, requireFields } from '../validators/inputValidators.js';
 import {
@@ -10,6 +11,7 @@ import {
 } from '../repositories/studentRepository.js';
 
 export const studentsRouter = express.Router();
+studentsRouter.use(requireAuth, requireRole('admin'));
 
 studentsRouter.get('/', asyncHandler((req, res) => {
   res.json(listStudents());

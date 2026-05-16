@@ -1,35 +1,98 @@
 const api = {
+  auth: '/api/auth',
   clubs: '/api/clubs',
   events: '/api/events',
   students: '/api/students',
+  memberships: '/api/memberships',
   registrations: '/api/registrations',
-  dashboard: '/api/dashboard'
+  dashboard: '/api/dashboard',
+  users: '/api/users'
 };
 
 const state = {
+  token: localStorage.getItem('clubhub_token'),
+  user: null,
   clubs: [],
   events: [],
   students: [],
-  registrations: []
+  memberships: [],
+  registrations: [],
+  users: []
 };
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   bindTabs();
   bindForms();
   bindResetButtons();
-  loadAll();
+  document.querySelector('#logout-button').addEventListener('click', logout);
+
+  if (state.token) {
+    try {
+      state.user = await request(`${api.auth}/me`);
+      showApp();
+      await loadAll();
+      return;
+    } catch {
+      logout(false);
+    }
+  }
+
+  showAuth();
 });
 
+async function login(event) {
+  event.preventDefault();
+  const payload = formData(event.currentTarget);
+  const response = await request(`${api.auth}/login`, {
+    method: 'POST',
+    body: JSON.stringify(payload)
+  }, false);
+  authenticate(response);
+}
+
+async function register(event) {
+  event.preventDefault();
+  const payload = formData(event.currentTarget);
+  const response = await request(`${api.auth}/register`, {
+    method: 'POST',
+    body: JSON.stringify(payload)
+  }, false);
+  authenticate(response);
+}
+
+function authenticate(response) {
+  state.token = response.token;
+  state.user = response.user;
+  localStorage.setItem('clubhub_token', state.token);
+  showApp();
+  loadAll();
+}
+
+function logout(showMessage = true) {
+  state.token = null;
+  state.user = null;
+  localStorage.removeItem('clubhub_token');
+  showAuth();
+  if (showMessage) toast('Logged out.');
+}
+
 async function loadAll() {
-  const [dashboard, clubs, events, students, registrations] = await Promise.all([
+  const requests = [
     request(api.dashboard),
     request(api.clubs),
     request(api.events),
-    request(api.students),
+    request(api.memberships),
     request(api.registrations)
-  ]);
+  ];
 
-  Object.assign(state, { clubs, events, students, registrations });
+  if (state.user.role === 'admin') {
+    requests.push(request(api.students), request(api.users));
+  }
+
+  const [dashboard, clubs, events, memberships, registrations, students = [], users = []] = await Promise.all(requests);
+  Object.assign(state, { clubs, events, students, memberships, registrations, users });
+
+  renderRoleAwareLayout();
   renderMetrics(dashboard.totals);
   renderClubOptions();
   renderEventOptions();
@@ -37,7 +100,9 @@ async function loadAll() {
   renderClubs();
   renderEvents();
   renderStudents();
+  renderMemberships();
   renderRegistrations();
+  renderUsers();
 }
 
 function bindTabs() {
@@ -52,9 +117,12 @@ function bindTabs() {
 }
 
 function bindForms() {
+  document.querySelector('#login-form').addEventListener('submit', login);
+  document.querySelector('#register-form').addEventListener('submit', register);
   document.querySelector('#club-form').addEventListener('submit', submitClub);
   document.querySelector('#event-form').addEventListener('submit', submitEvent);
   document.querySelector('#student-form').addEventListener('submit', submitStudent);
+  document.querySelector('#membership-form').addEventListener('submit', submitMembership);
   document.querySelector('#registration-form').addEventListener('submit', submitRegistration);
 }
 
@@ -67,13 +135,45 @@ function bindResetButtons() {
   });
 }
 
+function showAuth() {
+  document.querySelector('#auth-screen').classList.remove('hidden');
+  document.querySelector('#app-screen').classList.add('hidden');
+  document.querySelector('#logout-button').classList.add('hidden');
+  document.querySelector('#user-badge').classList.add('hidden');
+}
+
+function showApp() {
+  document.querySelector('#auth-screen').classList.add('hidden');
+  document.querySelector('#app-screen').classList.remove('hidden');
+  document.querySelector('#logout-button').classList.remove('hidden');
+  const badge = document.querySelector('#user-badge');
+  badge.textContent = `${state.user.full_name} (${state.user.role})`;
+  badge.classList.remove('hidden');
+}
+
+function renderRoleAwareLayout() {
+  toggleByRole('.admin-only', state.user.role === 'admin');
+  toggleByRole('.admin-manager-only', ['admin', 'club_manager'].includes(state.user.role));
+  document.querySelector('#clubs-heading').textContent = state.user.role === 'student' ? 'My Clubs' : 'Clubs';
+  document.querySelector('#clubs-copy').textContent = state.user.role === 'student'
+    ? 'Only approved clubs connected to your account.'
+    : 'Clubs visible for your current role.';
+  document.querySelector('#events-heading').textContent = state.user.role === 'student' ? 'My Club Events' : 'Events';
+  document.querySelector('#events-copy').textContent = state.user.role === 'student'
+    ? 'Events from your approved clubs.'
+    : 'Events visible for your current role.';
+}
+
+function toggleByRole(selector, visible) {
+  document.querySelectorAll(selector).forEach((element) => element.classList.toggle('hidden', !visible));
+}
+
 async function submitClub(event) {
   event.preventDefault();
   const form = event.currentTarget;
   const payload = formData(form);
   const id = payload.id;
   delete payload.id;
-
   await request(id ? `${api.clubs}/${id}` : api.clubs, {
     method: id ? 'PUT' : 'POST',
     body: JSON.stringify(payload)
@@ -91,7 +191,6 @@ async function submitEvent(event) {
   delete payload.id;
   payload.capacity = Number(payload.capacity);
   payload.event_date = new Date(payload.event_date).toISOString().slice(0, 19);
-
   await request(id ? `${api.events}/${id}` : api.events, {
     method: id ? 'PUT' : 'POST',
     body: JSON.stringify(payload)
@@ -107,13 +206,24 @@ async function submitStudent(event) {
   const payload = formData(form);
   const id = payload.id;
   delete payload.id;
-
   await request(id ? `${api.students}/${id}` : api.students, {
     method: id ? 'PUT' : 'POST',
     body: JSON.stringify(payload)
   });
   form.reset();
   toast('Student saved.');
+  loadAll();
+}
+
+async function submitMembership(event) {
+  event.preventDefault();
+  const payload = formData(event.currentTarget);
+  await request(api.memberships, {
+    method: 'POST',
+    body: JSON.stringify(payload)
+  });
+  event.currentTarget.reset();
+  toast(state.user.role === 'student' ? 'Membership request sent.' : 'Membership saved.');
   loadAll();
 }
 
@@ -125,7 +235,7 @@ async function submitRegistration(event) {
     body: JSON.stringify(payload)
   });
   event.currentTarget.reset();
-  toast('Student registered.');
+  toast('Registration saved.');
   loadAll();
 }
 
@@ -142,10 +252,10 @@ function renderClubs() {
       <td>${escapeHtml(club.category)}</td>
       <td>${escapeHtml(club.president_name)}</td>
       <td>${escapeHtml(club.status)}</td>
-      <td>
+      <td>${state.user.role === 'admin' ? `
         <button type="button" onclick="editClub(${club.id})">Edit</button>
         <button type="button" class="danger" onclick="removeRecord('${api.clubs}', ${club.id})">Delete</button>
-      </td>
+      ` : ''}</td>
     </tr>
   `).join('');
 }
@@ -157,11 +267,11 @@ function renderEvents() {
       <td>${escapeHtml(event.club_name)}</td>
       <td>${formatDate(event.event_date)}</td>
       <td>${event.registered_count}/${event.capacity}</td>
-      <td>${escapeHtml(event.status)}</td>
-      <td>
+      <td>${event.registered_count >= event.capacity ? 'full' : escapeHtml(event.status)}</td>
+      <td>${['admin', 'club_manager'].includes(state.user.role) ? `
         <button type="button" onclick="editEvent(${event.id})">Edit</button>
         <button type="button" class="danger" onclick="removeRecord('${api.events}', ${event.id})">Delete</button>
-      </td>
+      ` : ''}</td>
     </tr>
   `).join('');
 }
@@ -181,6 +291,21 @@ function renderStudents() {
   `).join('');
 }
 
+function renderMemberships() {
+  document.querySelector('#memberships-table').innerHTML = state.memberships.map((membership) => `
+    <tr>
+      <td>${escapeHtml(membership.club_name)}</td>
+      <td>${escapeHtml(membership.student_name)}</td>
+      <td>${escapeHtml(membership.role)}</td>
+      <td>${escapeHtml(membership.status)}</td>
+      <td>${['admin', 'club_manager'].includes(state.user.role) ? `
+        <button type="button" onclick="updateMembership(${membership.id}, 'approved')">Approve</button>
+        <button type="button" class="secondary" onclick="updateMembership(${membership.id}, 'rejected')">Reject</button>
+      ` : ''}</td>
+    </tr>
+  `).join('');
+}
+
 function renderRegistrations() {
   document.querySelector('#registrations-table').innerHTML = state.registrations.map((registration) => `
     <tr>
@@ -188,31 +313,46 @@ function renderRegistrations() {
       <td>${escapeHtml(registration.student_name)}</td>
       <td>${escapeHtml(registration.status)}</td>
       <td>${formatDate(registration.registered_at)}</td>
-      <td>
+      <td>${['admin', 'club_manager'].includes(state.user.role) ? `
         <button type="button" onclick="markAttended(${registration.id})">Attended</button>
         <button type="button" class="danger" onclick="removeRecord('${api.registrations}', ${registration.id})">Delete</button>
-      </td>
+      ` : ''}</td>
+    </tr>
+  `).join('');
+}
+
+function renderUsers() {
+  document.querySelector('#users-table').innerHTML = state.users.map((user) => `
+    <tr>
+      <td>${escapeHtml(user.full_name)}</td>
+      <td>${escapeHtml(user.email)}</td>
+      <td>${escapeHtml(user.role)}</td>
+      <td>${user.managed_club_id || '-'}</td>
     </tr>
   `).join('');
 }
 
 function renderClubOptions() {
-  document.querySelector('[name="club_id"]').innerHTML = state.clubs
-    .map((club) => `<option value="${club.id}">${escapeHtml(club.name)}</option>`)
-    .join('');
+  document.querySelectorAll('[name="club_id"]').forEach((select) => {
+    select.innerHTML = state.clubs
+      .map((club) => `<option value="${club.id}">${escapeHtml(club.name)}</option>`)
+      .join('');
+  });
 }
 
 function renderEventOptions() {
   document.querySelector('[name="event_id"]').innerHTML = state.events
-    .filter((event) => event.status === 'scheduled')
+    .filter((event) => event.status === 'scheduled' && event.registered_count < event.capacity)
     .map((event) => `<option value="${event.id}">${escapeHtml(event.title)}</option>`)
     .join('');
 }
 
 function renderStudentOptions() {
-  document.querySelector('[name="student_id"]').innerHTML = state.students
-    .map((student) => `<option value="${student.id}">${escapeHtml(student.full_name)}</option>`)
-    .join('');
+  document.querySelectorAll('[name="student_id"]').forEach((select) => {
+    select.innerHTML = state.students
+      .map((student) => `<option value="${student.id}">${escapeHtml(student.full_name)}</option>`)
+      .join('');
+  });
 }
 
 window.editClub = (id) => fillForm('club-form', state.clubs.find((club) => club.id === id));
@@ -223,6 +363,15 @@ window.editEvent = (id) => {
     ...event,
     event_date: event.event_date.slice(0, 16)
   });
+};
+
+window.updateMembership = async (id, status) => {
+  await request(`${api.memberships}/${id}/status`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status })
+  });
+  toast('Membership updated.');
+  loadAll();
 };
 
 window.markAttended = async (id) => {
@@ -253,11 +402,10 @@ function formData(form) {
   return Object.fromEntries(new FormData(form).entries());
 }
 
-async function request(url, options = {}) {
-  const response = await fetch(url, {
-    headers: { 'Content-Type': 'application/json' },
-    ...options
-  });
+async function request(url, options = {}, useAuth = true) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (useAuth && state.token) headers.Authorization = `Bearer ${state.token}`;
+  const response = await fetch(url, { headers, ...options });
 
   if (!response.ok) {
     const payload = await response.json().catch(() => ({}));

@@ -5,11 +5,13 @@ import { swaggerSpec } from './config/swagger.js';
 import { initializeDatabase } from './db/database.js';
 import { errorHandler } from './middleware.js';
 import { clubsRouter } from './routes/clubs.js';
+import { authRouter } from './routes/auth.js';
 import { dashboardRouter } from './routes/dashboard.js';
 import { eventsRouter } from './routes/events.js';
 import { membershipsRouter } from './routes/memberships.js';
 import { registrationsRouter } from './routes/registrations.js';
 import { studentsRouter } from './routes/students.js';
+import { usersRouter } from './routes/users.js';
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -21,12 +23,14 @@ app.use(express.json());
 app.use(express.static('public'));
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use('/api/auth', authRouter);
 app.use('/api/clubs', clubsRouter);
 app.use('/api/students', studentsRouter);
 app.use('/api/events', eventsRouter);
 app.use('/api/memberships', membershipsRouter);
 app.use('/api/registrations', registrationsRouter);
 app.use('/api/dashboard', dashboardRouter);
+app.use('/api/users', usersRouter);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', service: 'ClubHub API' });

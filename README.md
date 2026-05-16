@@ -12,6 +12,7 @@ The system provides:
 - Input validation on both frontend forms and backend routes
 - Business logic separated from routes for unit testing
 - Swagger UI for interactive API documentation
+- JWT-based authentication and role-based authorization
 
 ## Technologies
 
@@ -28,6 +29,7 @@ The system provides:
 - `Event`: Club event details, date, location, capacity, and status
 - `Membership`: Relationship between students and clubs
 - `EventRegistration`: Relationship between students and events
+- `User`: Login account with `student`, `club_manager`, or `admin` role
 
 ## Business Rules
 
@@ -38,6 +40,9 @@ The system provides:
 - Students cannot register when event capacity is full.
 - Membership status must be `pending`, `approved`, or `rejected`.
 - Event status must be `scheduled`, `cancelled`, or `completed`.
+- Students can only view clubs connected to their own approved memberships.
+- Club managers can only manage events, memberships, and registrations for their assigned club.
+- Admin users can view and manage all records.
 
 ## Setup
 
@@ -66,6 +71,16 @@ Open Swagger API documentation:
 ```text
 http://localhost:3000/api-docs
 ```
+
+## Demo Accounts
+
+After the database is created, these seeded accounts are available:
+
+| Role | Email | Password |
+| --- | --- | --- |
+| Admin | `admin@istanbularel.edu.tr` | `clubhub123` |
+| Club Manager | `kerem.ozkan@istanbularel.edu.tr` | `clubhub123` |
+| Student | `melis.karaca@istanbularel.edu.tr` | `clubhub123` |
 
 ## Testing
 
@@ -134,6 +149,16 @@ The project includes a basic CI workflow in `.github/workflows/ci.yml`. When cod
 ### Dashboard
 
 - `GET /api/dashboard`
+
+### Authentication
+
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `GET /api/auth/me`
+
+### Users
+
+- `GET /api/users` admin only
 
 ## Project Idea Summary
 

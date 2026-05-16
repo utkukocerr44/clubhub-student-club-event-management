@@ -133,6 +133,18 @@ export const swaggerSpec = swaggerJSDoc({
       },
       '/api/dashboard': {
         get: { tags: ['Dashboard'], summary: 'Get dashboard metrics', responses: { 200: { description: 'OK' } } }
+      },
+      '/api/auth/register': {
+        post: { summary: 'Register a student account', responses: { 201: { description: 'Created' } } }
+      },
+      '/api/auth/login': {
+        post: { summary: 'Login and receive a JWT', responses: { 200: { description: 'OK' } } }
+      },
+      '/api/auth/me': {
+        get: { summary: 'Get the authenticated user', responses: { 200: { description: 'OK' } } }
+      },
+      '/api/users': {
+        get: { summary: 'List users', responses: { 200: { description: 'OK' } } }
       }
     }
   },

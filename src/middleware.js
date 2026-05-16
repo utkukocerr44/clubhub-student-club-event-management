@@ -20,3 +20,15 @@ export function errorHandler(error, req, res, _next) {
   const status = error.statusCode || 400;
   return res.status(status).json({ error: error.message || 'Unexpected error.' });
 }
+
+export function unauthorized(message = 'Authentication is required.') {
+  const error = new Error(message);
+  error.statusCode = 401;
+  return error;
+}
+
+export function forbidden(message = 'You are not allowed to perform this action.') {
+  const error = new Error(message);
+  error.statusCode = 403;
+  return error;
+}

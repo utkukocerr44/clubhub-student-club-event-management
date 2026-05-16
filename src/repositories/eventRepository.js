@@ -15,6 +15,40 @@ export function listEvents() {
   `).all();
 }
 
+export function listEventsForStudent(studentId) {
+  return db.prepare(`
+    SELECT events.*, clubs.name AS club_name,
+      (
+        SELECT COUNT(*)
+        FROM event_registrations
+        WHERE event_registrations.event_id = events.id
+          AND event_registrations.status = 'registered'
+      ) AS registered_count
+    FROM events
+    JOIN clubs ON clubs.id = events.club_id
+    JOIN memberships ON memberships.club_id = clubs.id
+    WHERE memberships.student_id = ?
+      AND memberships.status = 'approved'
+    ORDER BY event_date
+  `).all(studentId);
+}
+
+export function listEventsForClub(clubId) {
+  return db.prepare(`
+    SELECT events.*, clubs.name AS club_name,
+      (
+        SELECT COUNT(*)
+        FROM event_registrations
+        WHERE event_registrations.event_id = events.id
+          AND event_registrations.status = 'registered'
+      ) AS registered_count
+    FROM events
+    JOIN clubs ON clubs.id = events.club_id
+    WHERE events.club_id = ?
+    ORDER BY event_date
+  `).all(clubId);
+}
+
 export function getEventById(id) {
   return db.prepare(`
     SELECT events.*, clubs.name AS club_name
