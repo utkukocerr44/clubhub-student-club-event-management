@@ -10,14 +10,24 @@ export const swaggerSpec = swaggerJSDoc({
     },
     servers: [{ url: 'http://localhost:3000' }],
     tags: [
+      { name: 'Auth' },
       { name: 'Clubs' },
       { name: 'Students' },
       { name: 'Events' },
       { name: 'Memberships' },
       { name: 'Registrations' },
-      { name: 'Dashboard' }
+      { name: 'Dashboard' },
+      { name: 'Users' }
     ],
+    security: [{ bearerAuth: [] }],
     components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT'
+        }
+      },
       schemas: {
         Club: {
           type: 'object',
@@ -26,7 +36,7 @@ export const swaggerSpec = swaggerJSDoc({
             category: { type: 'string', example: 'Technology' },
             description: { type: 'string', example: 'Coding workshops and project nights.' },
             president_name: { type: 'string', example: 'Kerem Ozkan' },
-            contact_email: { type: 'string', example: 'software.club@campus.edu' },
+            contact_email: { type: 'string', example: 'software.club@istanbularel.edu.tr' },
             status: { type: 'string', example: 'active' }
           }
         },
@@ -35,7 +45,7 @@ export const swaggerSpec = swaggerJSDoc({
           properties: {
             full_name: { type: 'string', example: 'Melis Karaca' },
             student_number: { type: 'string', example: '220303111' },
-            email: { type: 'string', example: 'ece.demir@campus.edu' },
+            email: { type: 'string', example: 'melis.karaca@istanbularel.edu.tr' },
             department: { type: 'string', example: 'Software Engineering' }
           }
         },
@@ -64,6 +74,13 @@ export const swaggerSpec = swaggerJSDoc({
             content: { 'application/json': { schema: { $ref: '#/components/schemas/Club' } } }
           },
           responses: { 201: { description: 'Created' } }
+        }
+      },
+      '/api/clubs/discover': {
+        get: {
+          tags: ['Clubs'],
+          summary: 'List active clubs for membership requests',
+          responses: { 200: { description: 'OK' } }
         }
       },
       '/api/clubs/{id}': {
@@ -135,16 +152,59 @@ export const swaggerSpec = swaggerJSDoc({
         get: { tags: ['Dashboard'], summary: 'Get dashboard metrics', responses: { 200: { description: 'OK' } } }
       },
       '/api/auth/register': {
-        post: { summary: 'Register a student account', responses: { 201: { description: 'Created' } } }
+        post: {
+          tags: ['Auth'],
+          summary: 'Register a student account',
+          security: [],
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  required: ['full_name', 'student_number', 'email', 'department', 'password'],
+                  properties: {
+                    full_name: { type: 'string', example: 'Melis Karaca' },
+                    student_number: { type: 'string', example: '220303111' },
+                    email: { type: 'string', example: 'melis.karaca@istanbularel.edu.tr' },
+                    department: { type: 'string', example: 'Software Engineering' },
+                    password: { type: 'string', example: 'clubhub123' }
+                  }
+                }
+              }
+            }
+          },
+          responses: { 201: { description: 'Created' } }
+        }
       },
       '/api/auth/login': {
-        post: { summary: 'Login and receive a JWT', responses: { 200: { description: 'OK' } } }
+        post: {
+          tags: ['Auth'],
+          summary: 'Login and receive a JWT',
+          security: [],
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  required: ['email', 'password'],
+                  properties: {
+                    email: { type: 'string', example: 'admin@istanbularel.edu.tr' },
+                    password: { type: 'string', example: 'clubhub123' }
+                  }
+                }
+              }
+            }
+          },
+          responses: { 200: { description: 'OK' } }
+        }
       },
       '/api/auth/me': {
-        get: { summary: 'Get the authenticated user', responses: { 200: { description: 'OK' } } }
+        get: { tags: ['Auth'], summary: 'Get the authenticated user', responses: { 200: { description: 'OK' } } }
       },
       '/api/users': {
-        get: { summary: 'List users', responses: { 200: { description: 'OK' } } }
+        get: { tags: ['Users'], summary: 'List users', responses: { 200: { description: 'OK' } } }
       }
     }
   },

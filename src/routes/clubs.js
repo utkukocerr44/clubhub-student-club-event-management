@@ -2,7 +2,7 @@ import express from 'express';
 import { requireAuth, requireRole } from '../authMiddleware.js';
 import { asyncHandler } from '../middleware.js';
 import { assertEmail, assertId, requireFields } from '../validators/inputValidators.js';
-import { createClub, deleteClub, getClubById, listClubs, listClubsForStudent, updateClub } from '../repositories/clubRepository.js';
+import { createClub, deleteClub, getClubById, listActiveClubs, listClubs, listClubsForStudent, updateClub } from '../repositories/clubRepository.js';
 
 export const clubsRouter = express.Router();
 clubsRouter.use(requireAuth);
@@ -20,6 +20,11 @@ clubsRouter.get('/', asyncHandler((req, res) => {
   if (req.user.role === 'student') return res.json(listClubsForStudent(req.user.student_id));
   if (req.user.role === 'club_manager') return res.json([getClubById(req.user.managed_club_id)]);
   return res.json(listClubs());
+}));
+
+clubsRouter.get('/discover', asyncHandler((req, res) => {
+  if (req.user.role === 'club_manager') return res.json([getClubById(req.user.managed_club_id)]);
+  return res.json(listActiveClubs());
 }));
 
 clubsRouter.get('/:id', asyncHandler((req, res) => {

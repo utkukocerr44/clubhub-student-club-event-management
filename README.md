@@ -41,6 +41,7 @@ The system provides:
 - Membership status must be `pending`, `approved`, or `rejected`.
 - Event status must be `scheduled`, `cancelled`, or `completed`.
 - Students can only view clubs connected to their own approved memberships.
+- Students can discover active clubs and send membership requests without seeing or changing another user's records.
 - Club managers can only manage events, memberships, and registrations for their assigned club.
 - Admin users can view and manage all records.
 - Register validation requires an `@istanbularel.edu.tr` email address, a 9 digit student number, and a department from the allowed list.
@@ -112,6 +113,7 @@ The project includes a basic CI workflow in `.github/workflows/ci.yml`. When cod
 ### Clubs
 
 - `GET /api/clubs`
+- `GET /api/clubs/discover`
 - `GET /api/clubs/:id`
 - `POST /api/clubs`
 - `PUT /api/clubs/:id`

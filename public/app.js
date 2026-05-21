@@ -1,6 +1,7 @@
 const api = {
   auth: '/api/auth',
   clubs: '/api/clubs',
+  clubDiscovery: '/api/clubs/discover',
   events: '/api/events',
   students: '/api/students',
   memberships: '/api/memberships',
@@ -13,6 +14,7 @@ const state = {
   token: localStorage.getItem('clubhub_token'),
   user: null,
   clubs: [],
+  availableClubs: [],
   events: [],
   students: [],
   memberships: [],
@@ -91,6 +93,7 @@ async function loadAll() {
   const requests = [
     request(api.dashboard),
     request(api.clubs),
+    request(api.clubDiscovery),
     request(api.events),
     request(api.memberships),
     request(api.registrations)
@@ -100,8 +103,8 @@ async function loadAll() {
     requests.push(request(api.students), request(api.users));
   }
 
-  const [dashboard, clubs, events, memberships, registrations, students = [], users = []] = await Promise.all(requests);
-  Object.assign(state, { clubs, events, students, memberships, registrations, users });
+  const [dashboard, clubs, availableClubs, events, memberships, registrations, students = [], users = []] = await Promise.all(requests);
+  Object.assign(state, { clubs, availableClubs, events, students, memberships, registrations, users });
 
   renderRoleAwareLayout();
   renderMetrics(dashboard.totals);
@@ -345,11 +348,13 @@ function renderUsers() {
 }
 
 function renderClubOptions() {
-  document.querySelectorAll('[name="club_id"]').forEach((select) => {
-    select.innerHTML = state.clubs
-      .map((club) => `<option value="${club.id}">${escapeHtml(club.name)}</option>`)
-      .join('');
-  });
+  document.querySelector('#event-form [name="club_id"]').innerHTML = state.clubs
+    .map((club) => `<option value="${club.id}">${escapeHtml(club.name)}</option>`)
+    .join('');
+
+  document.querySelector('#membership-form [name="club_id"]').innerHTML = state.availableClubs
+    .map((club) => `<option value="${club.id}">${escapeHtml(club.name)}</option>`)
+    .join('');
 }
 
 function renderEventOptions() {

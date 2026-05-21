@@ -4,6 +4,10 @@ export function listClubs() {
   return db.prepare('SELECT * FROM clubs ORDER BY name').all();
 }
 
+export function listActiveClubs() {
+  return db.prepare("SELECT * FROM clubs WHERE status = 'active' ORDER BY name").all();
+}
+
 export function listClubsForStudent(studentId) {
   return db.prepare(`
     SELECT clubs.*
