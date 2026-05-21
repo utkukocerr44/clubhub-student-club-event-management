@@ -100,6 +100,16 @@ main {
   gap: 18px;
 }
 
+.auth-alert {
+  grid-column: 1 / -1;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 8px;
+  color: #9a3412;
+  font-weight: 700;
+  padding: 14px 16px;
+}
+
 .auth-panel {
   background: var(--surface);
   border: 1px solid var(--line);
@@ -109,6 +119,15 @@ main {
 
 .auth-grid {
   grid-template-columns: 1fr;
+}
+
+.form-error {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: #fee4e2;
+  color: var(--danger);
+  font-weight: 700;
 }
 
 .metrics {

@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   bindForms();
   bindResetButtons();
   document.querySelector('#logout-button').addEventListener('click', logout);
+  showFileProtocolWarning();
 
   if (state.token) {
     try {
@@ -42,22 +43,32 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function login(event) {
   event.preventDefault();
+  setFormError('login-error', '');
   const payload = formData(event.currentTarget);
-  const response = await request(`${api.auth}/login`, {
-    method: 'POST',
-    body: JSON.stringify(payload)
-  }, false);
-  authenticate(response);
+  try {
+    const response = await request(`${api.auth}/login`, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    }, false);
+    authenticate(response);
+  } catch (error) {
+    setFormError('login-error', friendlyError(error));
+  }
 }
 
 async function register(event) {
   event.preventDefault();
+  setFormError('register-error', '');
   const payload = formData(event.currentTarget);
-  const response = await request(`${api.auth}/register`, {
-    method: 'POST',
-    body: JSON.stringify(payload)
-  }, false);
-  authenticate(response);
+  try {
+    const response = await request(`${api.auth}/register`, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    }, false);
+    authenticate(response);
+  } catch (error) {
+    setFormError('register-error', friendlyError(error));
+  }
 }
 
 function authenticate(response) {
@@ -423,6 +434,27 @@ function toast(message) {
   element.textContent = message;
   element.classList.add('show');
   setTimeout(() => element.classList.remove('show'), 2400);
+}
+
+function showFileProtocolWarning() {
+  if (window.location.protocol !== 'file:') return;
+  const alert = document.querySelector('#auth-alert');
+  alert.textContent = 'ClubHub must be opened from http://localhost:3000 after running npm start. Forms cannot connect to the API when this file is opened directly.';
+  alert.classList.remove('hidden');
+}
+
+function setFormError(id, message) {
+  const element = document.querySelector(`#${id}`);
+  element.textContent = message;
+  element.classList.toggle('hidden', !message);
+}
+
+function friendlyError(error) {
+  if (window.location.protocol === 'file:') {
+    return 'Please run npm start and open http://localhost:3000. Registration and login cannot work from a file:// page.';
+  }
+
+  return error.message || 'Something went wrong. Please check your information and try again.';
 }
 
 function title(value) {

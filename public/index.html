@@ -21,11 +21,13 @@
 
     <main>
       <section id="auth-screen" class="auth-shell">
+        <section id="auth-alert" class="auth-alert hidden"></section>
         <section class="auth-panel">
           <div class="section-heading">
             <h2>Login</h2>
-            <span>Use a JWT-protected account.</span>
+            <span>Welcome back to your club space.</span>
           </div>
+          <p id="login-error" class="form-error hidden"></p>
           <form id="login-form" class="form-grid auth-grid">
             <label>Email <input name="email" type="email" required></label>
             <label>Password <input name="password" type="password" required></label>
@@ -38,6 +40,7 @@
             <h2>Register</h2>
             <span>Create a student account.</span>
           </div>
+          <p id="register-error" class="form-error hidden"></p>
           <form id="register-form" class="form-grid">
             <label>Full Name <input name="full_name" required></label>
             <label>Student Number <input name="student_number" required></label>
