@@ -45,7 +45,19 @@
             <label>Full Name <input name="full_name" required></label>
             <label>Student Number <input name="student_number" required></label>
             <label>Email <input name="email" type="email" required></label>
-            <label>Department <input name="department" required></label>
+            <label>Department
+              <select name="department" required>
+                <option value="">Select department</option>
+                <option value="Software Engineering">Software Engineering</option>
+                <option value="Computer Engineering">Computer Engineering</option>
+                <option value="Management Information Systems">Management Information Systems</option>
+                <option value="Industrial Engineering">Industrial Engineering</option>
+                <option value="Psychology">Psychology</option>
+                <option value="Visual Communication Design">Visual Communication Design</option>
+                <option value="Business Administration">Business Administration</option>
+                <option value="Electrical and Electronics Engineering">Electrical and Electronics Engineering</option>
+              </select>
+            </label>
             <label>Password <input name="password" type="password" minlength="6" required></label>
             <button type="submit">Register</button>
           </form>
@@ -161,7 +173,19 @@
               <label>Full Name <input name="full_name" required></label>
               <label>Student Number <input name="student_number" required></label>
               <label>Email <input name="email" type="email" required></label>
-              <label>Department <input name="department" required></label>
+              <label>Department
+                <select name="department" required>
+                  <option value="">Select department</option>
+                  <option value="Software Engineering">Software Engineering</option>
+                  <option value="Computer Engineering">Computer Engineering</option>
+                  <option value="Management Information Systems">Management Information Systems</option>
+                  <option value="Industrial Engineering">Industrial Engineering</option>
+                  <option value="Psychology">Psychology</option>
+                  <option value="Visual Communication Design">Visual Communication Design</option>
+                  <option value="Business Administration">Business Administration</option>
+                  <option value="Electrical and Electronics Engineering">Electrical and Electronics Engineering</option>
+                </select>
+              </label>
               <button type="submit">Save Student</button>
               <button type="button" class="secondary" data-reset="student-form">Clear</button>
             </form>

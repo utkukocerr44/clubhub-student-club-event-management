@@ -1,7 +1,7 @@
 import express from 'express';
 import { requireAuth, requireRole } from '../authMiddleware.js';
 import { asyncHandler } from '../middleware.js';
-import { assertEmail, assertId, requireFields } from '../validators/inputValidators.js';
+import { assertArelEmail, assertDepartment, assertId, assertStudentNumber, requireFields } from '../validators/inputValidators.js';
 import {
   createStudent,
   deleteStudent,
@@ -25,14 +25,18 @@ studentsRouter.get('/:id', asyncHandler((req, res) => {
 
 studentsRouter.post('/', asyncHandler((req, res) => {
   requireFields(req.body, ['full_name', 'student_number', 'email', 'department']);
-  assertEmail(req.body.email);
+  assertArelEmail(req.body.email);
+  assertStudentNumber(req.body.student_number);
+  assertDepartment(req.body.department);
   res.status(201).json(createStudent(req.body));
 }));
 
 studentsRouter.put('/:id', asyncHandler((req, res) => {
   const id = assertId(req.params.id);
   requireFields(req.body, ['full_name', 'student_number', 'email', 'department']);
-  assertEmail(req.body.email);
+  assertArelEmail(req.body.email);
+  assertStudentNumber(req.body.student_number);
+  assertDepartment(req.body.department);
   const student = updateStudent(id, req.body);
   if (!student) return res.status(404).json({ error: 'Student was not found.' });
   return res.json(student);

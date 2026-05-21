@@ -43,6 +43,7 @@ The system provides:
 - Students can only view clubs connected to their own approved memberships.
 - Club managers can only manage events, memberships, and registrations for their assigned club.
 - Admin users can view and manage all records.
+- Register validation requires an `@istanbularel.edu.tr` email address, a 9 digit student number, and a department from the allowed list.
 
 ## Setup
 

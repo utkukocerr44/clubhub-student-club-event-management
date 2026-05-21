@@ -1,6 +1,6 @@
 import express from 'express';
 import { asyncHandler, unauthorized } from '../middleware.js';
-import { assertEmail, requireFields } from '../validators/inputValidators.js';
+import { assertArelEmail, assertDepartment, assertStudentNumber, requireFields } from '../validators/inputValidators.js';
 import { comparePassword, createToken, hashPassword } from '../services/authService.js';
 import { createStudent } from '../repositories/studentRepository.js';
 import { createUser, getUserByEmail, getUserById } from '../repositories/userRepository.js';
@@ -10,7 +10,9 @@ export const authRouter = express.Router();
 
 authRouter.post('/register', asyncHandler(async (req, res) => {
   requireFields(req.body, ['full_name', 'student_number', 'email', 'department', 'password']);
-  assertEmail(req.body.email);
+  assertArelEmail(req.body.email);
+  assertStudentNumber(req.body.student_number);
+  assertDepartment(req.body.department);
   if (req.body.password.length < 6) {
     throw new Error('Password must be at least 6 characters.');
   }
