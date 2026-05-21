@@ -22,7 +22,7 @@ membershipsRouter.get('/', asyncHandler((req, res) => {
   return res.json(listMemberships());
 }));
 
-membershipsRouter.post('/', asyncHandler((req, res) => {
+membershipsRouter.post('/', requireRole('admin', 'student'), asyncHandler((req, res) => {
   requireFields(req.body, ['club_id']);
   const membership = {
     club_id: assertId(req.body.club_id, 'club_id'),

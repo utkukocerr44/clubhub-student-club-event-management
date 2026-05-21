@@ -23,7 +23,7 @@ registrationsRouter.get('/', asyncHandler((req, res) => {
   return res.json(listRegistrations());
 }));
 
-registrationsRouter.post('/', asyncHandler((req, res) => {
+registrationsRouter.post('/', requireRole('admin', 'student'), asyncHandler((req, res) => {
   requireFields(req.body, ['event_id']);
   const eventId = assertId(req.body.event_id, 'event_id');
   const studentId = req.user.role === 'student'

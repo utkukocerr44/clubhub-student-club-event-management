@@ -154,6 +154,7 @@ function showApp() {
 function renderRoleAwareLayout() {
   toggleByRole('.admin-only', state.user.role === 'admin');
   toggleByRole('.admin-manager-only', ['admin', 'club_manager'].includes(state.user.role));
+  toggleByRole('.student-admin-only', ['admin', 'student'].includes(state.user.role));
   document.querySelector('#clubs-heading').textContent = state.user.role === 'student' ? 'My Clubs' : 'Clubs';
   document.querySelector('#clubs-copy').textContent = state.user.role === 'student'
     ? 'Only approved clubs connected to your account.'

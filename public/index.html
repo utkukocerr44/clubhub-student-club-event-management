@@ -125,7 +125,7 @@
               <h2>Memberships</h2>
               <span>Memberships visible for your current role.</span>
             </div>
-            <form id="membership-form" class="form-grid">
+            <form id="membership-form" class="form-grid student-admin-only">
               <label>Club <select name="club_id" required></select></label>
               <label class="admin-only">Student <select name="student_id"></select></label>
               <label class="admin-only">Role <input name="role" value="member"></label>
@@ -177,7 +177,7 @@
               <h2>Registrations</h2>
               <span>Registrations visible for your current role.</span>
             </div>
-            <form id="registration-form" class="form-grid">
+            <form id="registration-form" class="form-grid student-admin-only">
               <label>Event <select name="event_id" required></select></label>
               <label class="admin-only">Student <select name="student_id"></select></label>
               <button type="submit">Register Student</button>
