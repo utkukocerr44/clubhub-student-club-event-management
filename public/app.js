@@ -147,7 +147,7 @@ function showApp() {
   document.querySelector('#app-screen').classList.remove('hidden');
   document.querySelector('#logout-button').classList.remove('hidden');
   const badge = document.querySelector('#user-badge');
-  badge.textContent = `${state.user.full_name} (${state.user.role})`;
+  badge.textContent = `${state.user.full_name} (${formatRole(state.user.role)})`;
   badge.classList.remove('hidden');
 }
 
@@ -326,7 +326,7 @@ function renderUsers() {
     <tr>
       <td>${escapeHtml(user.full_name)}</td>
       <td>${escapeHtml(user.email)}</td>
-      <td>${escapeHtml(user.role)}</td>
+      <td>${escapeHtml(formatRole(user.role))}</td>
       <td>${user.managed_club_id || '-'}</td>
     </tr>
   `).join('');
@@ -426,6 +426,10 @@ function toast(message) {
 
 function title(value) {
   return value.replace(/_/g, ' ').replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function formatRole(role) {
+  return title(role);
 }
 
 function formatDate(value) {
